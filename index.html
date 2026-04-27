@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지니영어교습소 2026년 5월 학사 일정</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<style>
+body { font-family: 'Noto Sans KR', sans-serif; }
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    height: 250px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.35rem;
+}
+
+.weekday-cell {
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.day-cell {
+    min-height: 74px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    border: 1px solid #dbeafe;
+    background: white;
+}
+
+.empty-cell { min-height: 74px; }
+
+@media (max-width: 640px) {
+    .day-cell, .empty-cell { min-height: 58px; }
+}
+</style>
+</head>
+
+<body class="bg-white text-slate-900">
+
+<header class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-blue-700">지니영어교습소</h1>
+            <p class="text-sm text-slate-600">2026년 5월 학사 일정 안내</p>
+        </div>
+        <p class="hidden md:block font-medium text-emerald-700">"성실이 실력이 되는 배움터"</p>
+    </div>
+</header>
+
+<div class="bg-blue-50 border-b border-blue-200">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex gap-3">
+        <span class="text-2xl">📅</span>
+        <div>
+            <p class="font-bold text-blue-700">5월 공휴일 안내</p>
+            <p class="text-sm text-slate-700">5월 1일, 5월 5일, 5월 25일은 공휴일로 수업이 없습니다.</p>
+        </div>
+    </div>
+</div>
+
+<main class="max-w-4xl mx-auto px-4 py-8 space-y-12">
+
+<section class="text-center space-y-2">
+    <h2 class="text-2xl md:text-3xl font-bold">5월 수업 스케줄 확인하기</h2>
+    <p class="text-slate-700">학생의 수업 요일을 선택하시면 5월 등원 일정과 주차별 수업 횟수를 확인할 수 있습니다.</p>
+</section>
+
+<section class="bg-white rounded-2xl shadow-lg border border-blue-200 overflow-hidden">
+    <div class="p-4 bg-gradient-to-r from-blue-50 to-emerald-50 border-b border-blue-200">
+        <p class="text-sm font-bold text-blue-700 mb-3">클래스 선택 (Select Class)</p>
+        <div class="flex flex-wrap gap-2" id="classSelector"></div>
+    </div>
+
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-4">
+            <div class="flex justify-between items-end">
+                <h3 class="text-lg font-bold">📅 5월 캘린더</h3>
+                <span id="totalClassesBadge" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full"></span>
+            </div>
+
+            <div class="calendar-grid mb-2">
+                <div class="weekday-cell text-red-600">일</div>
+                <div class="weekday-cell">월</div>
+                <div class="weekday-cell">화</div>
+                <div class="weekday-cell">수</div>
+                <div class="weekday-cell">목</div>
+                <div class="weekday-cell">금</div>
+                <div class="weekday-cell text-blue-700">토</div>
+            </div>
+
+            <div id="calendarGrid" class="calendar-grid"></div>
+
+            <div class="flex gap-4 text-xs justify-center mt-2">
+                <div class="flex items-center gap-1">
+                    <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
+                    <span>정규 수업일</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                    <span>공휴일</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col justify-between">
+            <div class="space-y-2 mb-4">
+                <h3 class="text-lg font-bold">📊 주간 수업 분포</h3>
+                <p class="text-sm text-slate-700">공휴일은 포함되지 않습니다.</p>
+            </div>
+
+            <div class="chart-container bg-emerald-50 rounded-xl p-2 border border-emerald-200">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+
+            <div id="scheduleSummary" class="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800 border-l-4 border-blue-600"></div>
+        </div>
+    </div>
+</section>
+
+<section class="space-y-4">
+    <div class="bg-white rounded-xl shadow-sm border border-blue-200 p-5">
+        <h2 class="text-xl font-bold mb-4">🏆 숙제 성실상</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4"><span class="font-bold text-blue-700">강**</span> Bud class</div>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4"><span class="font-bold text-emerald-700">박**</span> 중 1 </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4"><span class="font-bold text-blue-700">양**</span> Blossom class</div>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4"><span class="font-bold text-emerald-700">이**</span> Seed class </div>
+        </div>
+    </div>
+</section>
+
+<section class="space-y-4">
+    <h2 class="text-xl font-bold">📌 공지 사항</h2>
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-6">
+        <div>
+            <h3 class="font-bold text-red-600 mb-3">1. 원비 인상 안내</h3>
+
+            <table class="w-full text-sm border border-slate-300">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th class="p-3 border">대상</th>
+                        <th class="p-3 border">수업료</th>
+                        <th class="p-3 border">시간</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="p-3 border">초등 3,4학년인 phonics, Seed 클래스</td>
+                        <td class="p-3 border font-bold text-red-600">16만원</td>
+                        <td class="p-3 border">70분</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 border">초등 5,6학년 또는 Bud 클래스 부터 </td>
+                        <td class="p-3 border font-bold text-red-600">18만원</td>
+                        <td class="p-3 border">80분</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 border">중등 1,2학년</td>
+                        <td class="p-3 border font-bold text-red-600">25만원</td>
+                        <td class="p-3 border">100분</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 border">중등 3학년 또는 고등 모의고사 준비반</td>
+                        <td class="p-3 border font-bold text-red-600">28만원</td>
+                        <td class="p-3 border">120분</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p class="mt-3 text-sm">
+                변경된 수업료는 <span class="font-bold text-red-600">6월부터 적용됩니다.</span>  <p class="mt-3 text-sm"> 평가서에 개별 안내드리겠습니다. </p>
+            </p>
+        </div>
+
+        <div class="border-t border-slate-200 pt-5">
+            <h3 class="font-bold text-blue-700 mb-2">2. 수업시간 변경 안내</h3>
+            <p class="text-sm leading-relaxed">
+                <span class="font-bold text-blue-700">중등 수업 시작 : 6시</span><br>
+                <span class="font-bold text-emerald-700">초등 마지막 수업 시작 : 4시 40분</span><br><br>
+                5월부터 시간이 변경됩니다. 일정 참고 부탁드립니다.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="space-y-4">
+    <h2 class="text-xl font-bold">📢 학사 운영 안내</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white p-5 rounded-lg border border-blue-200 shadow-sm">
+            <h4 class="font-bold text-blue-700 mb-2">📊 월간 평가서</h4>
+            <p class="text-sm">매달 2번째 수업 시간에 개별 평가서를 발송합니다.</p>
+        </div>
+
+
+
+        <div class="bg-white p-5 rounded-lg border border-emerald-200 shadow-sm">
+            <h4 class="font-bold text-emerald-700 mb-2">💳 수강료 납부</h4>
+            <p class="text-sm">
+                기간: 4월 27일 ~ 5월 4일<br>
+                방법: 입금, 카카오톡 카드 결제
+            </p>
+        </div>
+
+<div class="bg-slate-50 rounded-lg p-5 text-sm text-slate-700 border border-slate-200">
+                <h4 class="font-bold mb-2 text-slate-700">⚖️ 보강 및 차감 규정</h4>
+                <ul class="list-disc list-inside space-y-1 ml-1">
+                    <li><span class="font-semibold text-emerald-600">보강 및 차감 가능:</span> 입원, 전염성 질환, 학교 공식 행사 </li>
+                    <li><span class="font-semibold text-rose-500">보강,차감,이월 불가:</span> 개인 사유(여행, 단순 결석), 수업 지각 </li> 
+                </ul>
+            </div>
+
+    </div>
+</section>
+
+<footer class="border-t border-slate-200 pt-8 pb-12 text-center">
+    <h2 class="text-xl font-bold text-blue-700 mb-2">지니영어교습소</h2>
+    <p class="text-slate-600 text-sm mb-4">상담 문의: 010-6834-1023</p>
+</footer>
+
+</main>
+
+<script>
+const classTypes = [
+    {
+        id: 'mwf',
+        name: '월·수·금',
+        dates: [4, 6, 8, 11, 13, 15, 18, 20, 22, 27, 29]
+    },
+    {
+        id: 'mtt',
+        name: '월·화·목',
+        dates: [4, 7, 11, 12, 14, 18, 19, 21, 26, 28]
+    },
+    {
+        id: 'twt',
+        name: '화·수·목',
+        dates: [6, 7, 12, 13, 14, 19, 20, 21, 26, 27, 28]
+    },
+    {
+        id: 'ttf',
+        name: '화·목·금',
+        dates: [7, 8, 12, 14, 15, 19, 21, 22, 26, 28, 29]
+    }
+];
+
+const holidays = [1, 5, 25];
+const firstDayOffset = 5;
+const daysInMonth = 31;
+
+let selectedClassId = 'mwf';
+let chartInstance = null;
+
+const classSelector = document.getElementById('classSelector');
+const calendarGrid = document.getElementById('calendarGrid');
+const totalClassesBadge = document.getElementById('totalClassesBadge');
+const scheduleSummary = document.getElementById('scheduleSummary');
+const ctx = document.getElementById('weeklyChart').getContext('2d');
+
+function init() {
+    renderClassSelector();
+    updateDashboard();
+}
+
+function renderClassSelector() {
+    classSelector.innerHTML = '';
+
+    classTypes.forEach(type => {
+        const btn = document.createElement('button');
+
+        btn.className = `px-4 py-2 rounded-lg text-sm font-bold transition-all border ${
+            selectedClassId === type.id
+            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+            : 'bg-white text-slate-800 border-blue-200 hover:bg-blue-50'
+        }`;
+
+        btn.innerText = type.name;
+
+        btn.onclick = () => {
+            selectedClassId = type.id;
+            renderClassSelector();
+            updateDashboard();
+        };
+
+        classSelector.appendChild(btn);
+    });
+}
+
+function updateDashboard() {
+    const currentClass = classTypes.find(c => c.id === selectedClassId);
+
+    totalClassesBadge.innerText = `총 ${currentClass.dates.length}회 정규 수업`;
+
+    scheduleSummary.innerHTML = `
+        <p><strong>${currentClass.name} 반</strong>은 5월 한 달간 총 
+        <strong>${currentClass.dates.length}회</strong> 정규 수업합니다.</p>
+        <p class="mt-1 text-xs">※ 5월 1일, 5일, 25일은 공휴일입니다.</p>
+    `;
+
+    renderCalendar(currentClass);
+    renderChart(currentClass);
+}
+
+function renderCalendar(currentClass) {
+    calendarGrid.innerHTML = '';
+
+    for (let i = 0; i < firstDayOffset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-cell';
+        calendarGrid.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+
+        const isClassDay = currentClass.dates.includes(day);
+        const isHoliday = holidays.includes(day);
+        const dayOfWeek = (firstDayOffset + day - 1) % 7;
+
+        const dateNum = document.createElement('span');
+        dateNum.innerText = day;
+        dateNum.className = 'font-bold';
+
+        if (isClassDay) {
+            cell.classList.add('bg-blue-600', 'border-blue-700', 'text-white');
+        } else if (isHoliday) {
+            cell.classList.add('bg-red-100', 'border-red-300');
+            dateNum.classList.add('text-red-600');
+
+            const label = document.createElement('span');
+            label.innerText = '공휴일';
+            label.className = 'text-[10px] text-red-600 font-bold mt-1';
+            cell.appendChild(label);
+        } else {
+            if (dayOfWeek === 0) dateNum.classList.add('text-red-600');
+            else if (dayOfWeek === 6) dateNum.classList.add('text-blue-700');
+            else dateNum.classList.add('text-slate-800');
+        }
+
+        cell.appendChild(dateNum);
+        calendarGrid.appendChild(cell);
+    }
+}
+
+function renderChart(currentClass) {
+    let weekCounts = [0, 0, 0, 0, 0];
+
+    currentClass.dates.forEach(date => {
+        if (date <= 2) weekCounts[0]++;
+        else if (date <= 9) weekCounts[1]++;
+        else if (date <= 16) weekCounts[2]++;
+        else if (date <= 23) weekCounts[3]++;
+        else weekCounts[4]++;
+    });
+
+    const data = {
+        labels: ['1주차', '2주차', '3주차', '4주차', '5주차'],
+        datasets: [{
+            label: '수업 횟수',
+            data: weekCounts,
+            backgroundColor: [
+                'rgba(37, 99, 235, 0.85)',
+                'rgba(16, 185, 129, 0.85)',
+                'rgba(37, 99, 235, 0.85)',
+                'rgba(16, 185, 129, 0.85)',
+                'rgba(37, 99, 235, 0.85)'
+            ],
+            borderColor: 'rgb(30, 64, 175)',
+            borderWidth: 1,
+            borderRadius: 5
+        }]
+    };
+
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 4,
+                    ticks: { stepSize: 1 }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    };
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, config);
+}
+
+init();
+</script>
+
+</body>
+</html>
